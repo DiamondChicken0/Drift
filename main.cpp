@@ -139,6 +139,7 @@ int main() {
 
     Texture carImg;
     carImg.loadFromFile(filesystem::path(__FILE__).parent_path().string() + "/car.png");
+    
 
     Sprite car;
     car.setTexture(carImg);
