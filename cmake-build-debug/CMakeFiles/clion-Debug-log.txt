@@ -1,0 +1,5 @@
+C:\Users\Simon\AppData\Local\Programs\CLion\bin\cmake\win\x64\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=C:/Users/Simon/AppData/Local/Programs/CLion/bin/ninja/win/x64/ninja.exe -G Ninja -S C:\Users\Simon\CLionProjects\Drift -B C:\Users\Simon\CLionProjects\Drift\cmake-build-debug
+-- Found SFML 2.6.1 in C:/Users/Simon/CLionProjects/Drift/SFML-2.6.1/lib/cmake/SFML
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: C:/Users/Simon/CLionProjects/Drift/cmake-build-debug
