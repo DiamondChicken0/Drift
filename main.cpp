@@ -16,32 +16,51 @@ class CarPhysics
         bool turningLeft = false;
         bool turningRight = false;
         bool manual = true;
+        bool startUp = false;
+        bool running = false;
 
         int gearing = 1;
         int maxGearing = 6;
+        int weight = 2000;
+
+        double RPM;
         double speed = 0.0;
         double wheelAngle = 0.0;
+
+        float friction = 0.002f;
+        float turningSpeed = 0.02f;
         float acceleration = 0.01f;
         float deceleration = 0.02f;
-        double turningSpeed = 0.02;
-        float weight = 2000.0f;
-        double friction = 0.002;
         float maxSpeed = 4.0f;
         float maxReverse = -2.0f;
         float maxWheelAngle = 1.0f;
 
+        Font speedometerFont;
 
+        Time lastGearChange;
+
+        CarPhysics()
+        {
+            speedometerFont.loadFromFile(filesystem::path(__FILE__).parent_path().string() + "/FakeHope.ttf.");
+        }
 
         void accelerator()
         {
-            speed += acceleration;
-            speed = (speed > 2.0) ? 2.0 : speed;
+            if (running)
+            {
+                speed += acceleration;
+                speed = (speed > 2.0) ? 2.0 : speed;
+            }
+
         }
 
         void brake()
         {
-            speed -= deceleration;
-            speed = (speed < -1.0) ? -1.0 : speed;
+            if (running)
+            {
+                speed -= deceleration;
+                speed = (speed < -1.0) ? -1.0 : speed;
+            }
         }
 
         void wheelLeft()
@@ -59,6 +78,7 @@ class CarPhysics
             if (manual && gearing < maxGearing)
             {
                 gearing++;
+                lastGearChange = seconds(0);
             }
         }
 
@@ -70,8 +90,16 @@ class CarPhysics
             }
         }
 
-        void applyPhysics(Sprite* car)
+        void applyPhysics(Sprite* car, Time timePerFrame)
         {
+            if (startUp) {
+                RPM += 2 * timePerFrame.asMilliseconds();
+                if (RPM >= 800)
+                {
+                    running = true;
+                    startUp = false;
+                }
+            }
             if (accelerating)
                 accelerator();
             if (braking)
@@ -82,7 +110,6 @@ class CarPhysics
                 wheelRight();
             if (!turningLeft && !turningRight && wheelAngle != 0)
                 wheelAngle = (wheelAngle >= 0) ? wheelAngle - 0.01 : wheelAngle + 0.01;
-
 
             wheelAngle = (wheelAngle > maxWheelAngle) ? maxWheelAngle : wheelAngle;
             wheelAngle = (wheelAngle < -1*maxWheelAngle) ? -1 * maxWheelAngle : wheelAngle;
@@ -96,7 +123,16 @@ class CarPhysics
                 speed += friction;
             else
                 speed = 0;
+            cout << RPM << "\n";
         }
+
+};
+
+class uiElements
+{
+    public:
+
+
 };
 
 enum Controls
@@ -129,7 +165,6 @@ int main() {
 
     //Clock
     Clock clock;
-    Time deltaTime; //elapsed time
 
     const int fps = 144;
     const Time timePerFrame = seconds(1.0/fps);
@@ -150,18 +185,25 @@ int main() {
 
     while (window.isOpen())
     {
+        clock.restart();
         Event event;
         while (window.pollEvent(event))
         {
             switch (event.type) {
+
                 case (Event::Closed): {
                     window.close();
                     break;
                 }
 
+                /*
+                 * ANYTHING THAT IS A CONTINUOUS ACTION SHOULD BE WRITTEN AS A BOOLEAN
+                 * IT WILL NOT BE TIMED CORRECTLY OTHERWISE
+                 */
                 case (Event::KeyPressed): {
                     if (Keyboard::isKeyPressed(ControlMap[MOVE_FORWARD])) {
                         physics.accelerating = true;
+                        physics.startUp = true;
                     }
                     if (Keyboard::isKeyPressed(ControlMap[MOVE_BACKWARD])) {
                         physics.braking = true;
@@ -179,11 +221,10 @@ int main() {
 
                     }
                     if (Keyboard::isKeyPressed(ControlMap[GEAR_UP])) {
-                        //physics.
-
+                        physics.gearUp();
                     }
                     if (Keyboard::isKeyPressed(ControlMap[GEAR_DOWN])) {
-
+                        physics.gearDown();
                     }
                     break;
                 }
@@ -208,7 +249,11 @@ int main() {
             }
         }
 
-        physics.applyPhysics(&car);
+        /*
+         * things that need to be updated, redrawn, recalculated each frame
+         */
+
+        physics.applyPhysics(&car, timePerFrame);
         gameView.setCenter(car.getPosition().x, car.getPosition().y);
         //window.setView(gameView);
 
@@ -217,7 +262,7 @@ int main() {
         window.draw(car);
         window.display();
 
-        sleep(timePerFrame - deltaTime);
+        sleep(timePerFrame - clock.getElapsedTime());
     }
     return 0;
 }
