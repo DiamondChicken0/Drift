@@ -20,29 +20,22 @@ class CarPhysics
         bool running = false;
 
         int gearing = 1;
-        int maxGearing = 6;
-        int weight = 2000;
+        const int maxGearing = 6;
+        const int weight = 2000;
 
         double RPM;
         double speed = 0.0;
         double wheelAngle = 0.0;
 
-        float friction = 0.002f;
         float turningSpeed = 0.02f;
         float acceleration = 0.01f;
         float deceleration = 0.02f;
-        float maxSpeed = 4.0f;
-        float maxReverse = -2.0f;
-        float maxWheelAngle = 1.0f;
-
-        Font speedometerFont;
+        const float maxSpeed = 4.0f;
+        const float maxReverse = -2.0f;
+        const float maxWheelAngle = 1.0f;
+        const float friction = 0.002f;
 
         Time lastGearChange;
-
-        CarPhysics()
-        {
-            speedometerFont.loadFromFile(filesystem::path(__FILE__).parent_path().string() + "/FakeHope.ttf.");
-        }
 
         void accelerator()
         {
@@ -50,6 +43,7 @@ class CarPhysics
             {
                 speed += acceleration;
                 speed = (speed > 2.0) ? 2.0 : speed;
+                RPM += 3;
             }
 
         }
@@ -92,8 +86,8 @@ class CarPhysics
 
         void applyPhysics(Sprite* car, Time timePerFrame)
         {
-            if (startUp) {
-                RPM += 2 * timePerFrame.asMilliseconds();
+            if (startUp && RPM < 800) {
+                RPM += 800 * timePerFrame.asSeconds();
                 if (RPM >= 800)
                 {
                     running = true;
@@ -123,7 +117,6 @@ class CarPhysics
                 speed += friction;
             else
                 speed = 0;
-            cout << RPM << "\n";
         }
 
 };
@@ -132,7 +125,54 @@ class uiElements
 {
     public:
 
+    //speedometer = sm
+    RenderWindow smFinal;
+    Texture smTexture;
+    Sprite smSprite;
+    Font speedometerFont;
 
+    CircleShape smDP;
+    CircleShape smRPMGauge;
+    ConvexShape smBoundingTriL;
+    ConvexShape smBoundingTriR;
+    Text smRPMText;
+    Text smSpeedText;
+    Text smImperialText;
+
+
+
+    uiElements()
+    {
+        speedometerFont.loadFromFile(filesystem::path(__FILE__).parent_path().string() + "/FakeHope.ttf.");
+
+        //smBG.setRadius(125);
+        //smBG.setPosition(1620,780);
+        //smBG.setFillColor(Color::Black);
+
+        smDP.setRadius(110);
+        smDP.setPosition(1635,795);
+        smDP.setFillColor(Color{0x373737FF});
+        smDP.setOutlineColor(Color::Black);
+        smDP.setOutlineThickness(8);
+
+        smRPMText.setFont(speedometerFont);
+        smRPMText.setString("0");
+        smRPMText.setPosition(1685,855);
+        smRPMText.setFillColor(Color::Black);
+    }
+
+    void updateSpeedometer(double RPM, double speed, float maxSpeed)
+    {
+        smRPMText.setString(to_string((int)RPM));
+
+    }
+
+    void drawAllUI(RenderWindow* window)
+    {
+
+        window->draw(smDP);
+        window->draw(smRPMText);
+    }
 };
 
 enum Controls
@@ -170,11 +210,14 @@ int main() {
     const Time timePerFrame = seconds(1.0/fps);
 
     View gameView(FloatRect(0,0,1920,1080));
-    RenderWindow window(VideoMode(1920,1080), "Drift", Style::Default);
+    ContextSettings settings;
+    settings.antialiasingLevel = 8;
+    RenderWindow window(VideoMode(1920,1080), "Drift", Style::Default, settings);
 
     Texture carImg;
     carImg.loadFromFile(filesystem::path(__FILE__).parent_path().string() + "/car.png");
-    
+
+    uiElements uiSprites;
 
     Sprite car;
     car.setTexture(carImg);
@@ -254,12 +297,15 @@ int main() {
          */
 
         physics.applyPhysics(&car, timePerFrame);
+        uiSprites.updateSpeedometer(physics.RPM, physics.speed, physics.maxSpeed);
         gameView.setCenter(car.getPosition().x, car.getPosition().y);
         //window.setView(gameView);
 
 
         window.clear(Color::White);
         window.draw(car);
+
+        uiSprites.drawAllUI(&window);
         window.display();
 
         sleep(timePerFrame - clock.getElapsedTime());
