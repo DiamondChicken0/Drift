@@ -129,8 +129,9 @@ class uiElements
     RenderWindow smFinal;
     Texture smTexture;
     Sprite smSprite;
-    Font speedometerFont;
+    Font smFont;
 
+    RectangleShape smRPM_BG;
     CircleShape smDP;
     CircleShape smRPMGauge;
     ConvexShape smBoundingTriL;
@@ -139,38 +140,49 @@ class uiElements
     Text smSpeedText;
     Text smImperialText;
 
-
-
     uiElements()
     {
-        speedometerFont.loadFromFile(filesystem::path(__FILE__).parent_path().string() + "/FakeHope.ttf.");
+        smFont.loadFromFile(filesystem::path(__FILE__).parent_path().string() + "/FakeHope.ttf.");
 
         //smBG.setRadius(125);
         //smBG.setPosition(1620,780);
         //smBG.setFillColor(Color::Black);
 
         smDP.setRadius(110);
+        smDP.setOrigin(smDP.getLocalBounds().width/2, smDP.getLocalBounds().height/2);
         smDP.setPosition(1635,795);
-        smDP.setFillColor(Color{0x373737FF});
+        smDP.setFillColor(Color{Color::White});
         smDP.setOutlineColor(Color::Black);
         smDP.setOutlineThickness(8);
 
-        smRPMText.setFont(speedometerFont);
-        smRPMText.setString("0");
-        smRPMText.setPosition(1685,855);
-        smRPMText.setFillColor(Color::Black);
+        smRPMText.setFont(smFont);
+        smRPMText.setString("9999");
+        smRPMText.setCharacterSize(40);
+        smRPMText.setOrigin(smRPMText.getLocalBounds().width/2, smRPMText.getLocalBounds().height/2);
+        smRPMText.setPosition(smDP.getGlobalBounds().left + smDP.getLocalBounds().width/2,
+                              smDP.getGlobalBounds().top + smDP.getLocalBounds().height/3);
+        smRPMText.setFillColor(Color::White);
+        smRPMText.setOutlineColor(Color::Black);
+        smRPMText.setOutlineThickness(2);
+
+        smRPM_BG.setSize(Vector2f(smRPMText.getLocalBounds().width + 15, smRPMText.getLocalBounds().height + 15));
+        smRPM_BG.setFillColor(Color{0x404040FF});
+        smRPM_BG.setOrigin(smRPM_BG.getLocalBounds().width/2, smRPM_BG.getLocalBounds().height/2);
+        smRPM_BG.setPosition(smRPMText.getPosition().x, smRPMText.getPosition().y);
+        smRPM_BG.setOutlineColor(Color::Black);
+        smRPM_BG.setOutlineThickness(2);
     }
 
     void updateSpeedometer(double RPM, double speed, float maxSpeed)
     {
         smRPMText.setString(to_string((int)RPM));
-
     }
 
     void drawAllUI(RenderWindow* window)
     {
 
         window->draw(smDP);
+        window->draw(smRPM_BG);
         window->draw(smRPMText);
     }
 };
