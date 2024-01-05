@@ -136,13 +136,19 @@ class uiElements
     CircleShape smRPMGauge;
     ConvexShape smBoundingTriL;
     ConvexShape smBoundingTriR;
-    Text smRPMText;
+
+    // R -> L
+    Text smRPMText0;
+    Text smRPMText1;
+    Text smRPMText2;
+    Text smRPMText3;
+
     Text smSpeedText;
     Text smImperialText;
 
     uiElements()
     {
-        smFont.loadFromFile(filesystem::path(__FILE__).parent_path().string() + "/FakeHope.ttf.");
+        smFont.loadFromFile(filesystem::path(__FILE__).parent_path().string() + "/Open 24 Display St.ttf.");
 
         //smBG.setRadius(125);
         //smBG.setPosition(1620,780);
@@ -155,27 +161,42 @@ class uiElements
         smDP.setOutlineColor(Color::Black);
         smDP.setOutlineThickness(8);
 
-        smRPMText.setFont(smFont);
-        smRPMText.setString("9999");
-        smRPMText.setCharacterSize(40);
-        smRPMText.setOrigin(smRPMText.getLocalBounds().width/2, smRPMText.getLocalBounds().height/2);
-        smRPMText.setPosition(smDP.getGlobalBounds().left + smDP.getLocalBounds().width/2,
-                              smDP.getGlobalBounds().top + smDP.getLocalBounds().height/3);
-        smRPMText.setFillColor(Color::White);
-        smRPMText.setOutlineColor(Color::Black);
-        smRPMText.setOutlineThickness(2);
-
-        smRPM_BG.setSize(Vector2f(smRPMText.getLocalBounds().width + 15, smRPMText.getLocalBounds().height + 15));
-        smRPM_BG.setFillColor(Color{0x404040FF});
-        smRPM_BG.setOrigin(smRPM_BG.getLocalBounds().width/2, smRPM_BG.getLocalBounds().height/2);
-        smRPM_BG.setPosition(smRPMText.getPosition().x, smRPMText.getPosition().y);
-        smRPM_BG.setOutlineColor(Color::Black);
-        smRPM_BG.setOutlineThickness(2);
     }
 
     void updateSpeedometer(double RPM, double speed, float maxSpeed)
     {
-        smRPMText.setString(to_string((int)RPM));
+        try
+        {
+            int i = to_string((int)RPM).length();
+            smRPMText0.setString(to_string((int)RPM)[i-1]);
+            smRPMText1.setString(to_string((int)RPM)[i-2]);
+            smRPMText2.setString(to_string((int)RPM)[i-3]);
+            smRPMText3.setString(to_string((int)RPM)[i-4]);
+        }
+        catch (exception e){
+            ;
+        }
+
+        //0100 should be 100
+        if (smRPMText3.getString() == "0")
+        {
+            smRPMText3.setString("");
+            if (smRPMText2.getString() == "0")
+            {
+                smRPMText2.setString("");
+                if (smRPMText1.getString() == "0")
+                {
+                    smRPMText1.setString("");
+                    if (smRPMText0.getString() == "0")
+                    {
+                        smRPMText3.setString("Z");
+                        smRPMText2.setString("E");
+                        smRPMText1.setString("R");
+                        smRPMText0.setString("o");
+                    }
+                }
+            }
+        }
     }
 
     void drawAllUI(RenderWindow* window)
@@ -183,7 +204,7 @@ class uiElements
 
         window->draw(smDP);
         window->draw(smRPM_BG);
-        window->draw(smRPMText);
+        //window->draw(smRPMText);
     }
 };
 
@@ -223,7 +244,7 @@ int main() {
 
     View gameView(FloatRect(0,0,1920,1080));
     ContextSettings settings;
-    settings.antialiasingLevel = 8;
+    settings.antialiasingLevel = 16;
     RenderWindow window(VideoMode(1920,1080), "Drift", Style::Default, settings);
 
     Texture carImg;
